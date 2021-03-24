@@ -58,6 +58,8 @@ using namespace Base;
 //    Quantity::Mile =  Quantity (1609344.0     ,Unit(1));
 //}
 
+static QString imperialLengthFractions(bool includeFeet, const Quantity &quant, double &factor, QString &unitString);
+
 QString UnitsSchemaImperial1::schemaTranslate(const Quantity &quant, double &factor, QString &unitString)
 {
     double UnitValue = std::abs(quant.getValue());
@@ -206,103 +208,7 @@ QString UnitsSchemaImperialBuilding::schemaTranslate(const Quantity &quant, doub
     // ex: 3'- 4 1/4" with proper rounding
     Unit unit = quant.getUnit();
     if (unit == Unit::Length) {
-        unitString = QString::fromLatin1("in");
-        factor = 25.4;
-
-        // Total number of inches to format
-        double totalInches = std::abs(quant.getValue())/factor;
-
-        // minimum denominator (8 for 1/8, 16 for 1/16, etc)
-        int       minden;
-
-        // Outputs
-        int       feet;    // whole feet
-        int       inches;  // whole inches
-        int       num,den; // numerator and denominator of fractional val
-        std::stringstream output; // output stream
-
-        // Intermediate values
-        int       ntot;    // total fractional units
-        int       a,b,d;   // used to compute greatest common denominator
-        int       tmp;     // temporary variable for GCD
-
-        // Get the current user specified minimum denominator
-        minden = quant.getFormat().getDenominator();
-
-        // Compute and round the total number of fractional units
-        ntot = (int)std::round(totalInches * (double)minden);
-
-        // If this is zero, nothing to do but return
-        if( ntot==0 )
-            return QString::fromLatin1("0");
-
-        // Compute the whole number of feet and remaining units
-        feet = (int)std::floor(ntot / (12*minden));
-        ntot = ntot - 12*minden*feet;
-
-        // Compute the remaining number of whole inches
-        inches = (int)std::floor(ntot/minden);
-
-        // Lastly the fractional quantities
-        num = ntot - inches*minden;
-        den = minden;
-
-        // If numerator is not zero, compute greatest common divisor and reduce
-        // fraction
-        if( num!=0 )
-        {
-            // initialize
-            a = num;
-            b = den;
-            while (b != 0)
-            {
-                tmp = a % b;
-
-                a = b;
-                b = tmp;
-            }
-            d = a;
-
-            num /= d;
-            den /= d;
-        }
-
-        // Process into string. Start with negative sign if quantity is less
-        // than zero
-        if( quant.getValue() < 0 )
-            output << "-";
-
-        // Print feet if we have any
-        if( feet!=0 )
-        {
-            output << feet << "'";
-
-            // if there is to be trailing numbers, add space
-            if( inches!=0 || num!=0 )
-            {
-                output << " ";
-            }
-        }
-
-        // Three cases:
-        //   1. Whole inches, no fraction
-        //   2. Whole inches, fraction
-        //   3. Fraction only
-        if( inches>0 && num==0 ) // case 1.
-        {
-            output << inches << "\"";
-        }
-        else if( inches>0 && num!=0 ) // case 2
-        {
-            output << inches << "+" << num << "/" << den << "\"";
-        }
-        else if( inches==0 && num!=0 ) // case 3
-        {
-            output << num << "/" << den << "\"";
-        }
-
-        // Done!
-        return QString::fromLatin1(output.str().c_str());
+        return imperialLengthFractions(true, quant, factor, unitString);
     }
     else if (unit == Unit::Angle) {
         unitString = QString::fromUtf8("\xC2\xB0");
@@ -315,6 +221,42 @@ QString UnitsSchemaImperialBuilding::schemaTranslate(const Quantity &quant, doub
     else if (unit == Unit::Volume) {
         unitString = QString::fromLatin1("cft");
         factor = 28316846.592;
+    }
+    else if (unit == Unit::Velocity) {
+        unitString = QString::fromLatin1("in/min");
+        factor = 25.4/60;
+    }
+    else {
+        unitString = quant.getUnit().getString();
+        factor = 1.0;
+    }
+
+    return toLocale(quant, factor, unitString);
+}
+
+QString UnitsSchemaImperialBuildingInches::schemaTranslate(const Quantity &quant, double &factor, QString &unitString)
+{
+    // this schema expresses distances in inches + fractions
+    // ex: 37 1/4" with proper rounding
+    Unit unit = quant.getUnit();
+    if (unit == Unit::Length) {
+        return imperialLengthFractions(false, quant, factor, unitString);
+    }
+    else if (unit == Unit::Angle) {
+        unitString = QString::fromUtf8("\xC2\xB0");
+        factor = 1.0;
+    }
+    else if (unit == Unit::Area) {
+        // TODO Cascade for the Areas
+        // default action for all cases without special treatment:
+        unitString = QString::fromLatin1("in^2");
+        factor = 645.16;
+    }
+    else if (unit == Unit::Volume) {
+        // TODO Cascade for the Volume
+        // default action for all cases without special treatment:
+        unitString = QString::fromLatin1("in^3");
+        factor = 16387.064;
     }
     else if (unit == Unit::Velocity) {
         unitString = QString::fromLatin1("in/min");
@@ -408,3 +350,114 @@ QString UnitsSchemaImperialCivil::schemaTranslate(const Base::Quantity& quant, d
     return toLocale(quant, factor, unitString);
 }
 
+/** Converts length to feet + inches + fraction.
+ * If includeFeet is true, feet is included in the output.
+ * If includeFeet is false, the only is all in inches.
+ */
+static QString imperialLengthFractions(bool includeFeet, const Quantity &quant, double &factor, QString &unitString)
+{
+    unitString = QString::fromLatin1("in");
+    factor = 25.4;
+
+    // Total number of inches to format
+    double totalInches = std::abs(quant.getValue())/factor;
+
+    // minimum denominator (8 for 1/8, 16 for 1/16, etc)
+    int       minden;
+
+    // Outputs
+    int       feet;    // whole feet
+    int       inches;  // whole inches
+    int       num,den; // numerator and denominator of fractional val
+    std::stringstream output; // output stream
+
+    // Intermediate values
+    int       ntot;    // total fractional units
+    int       a,b,d;   // used to compute greatest common denominator
+    int       tmp;     // temporary variable for GCD
+
+    // Get the current user specified minimum denominator
+    minden = quant.getFormat().getDenominator();
+
+    // Compute and round the total number of fractional units
+    ntot = (int)std::round(totalInches * (double)minden);
+
+    // If this is zero, nothing to do but return
+    if( ntot==0 )
+        return QString::fromLatin1("0");
+
+    // Compute the whole number of feet and remaining units
+    if (includeFeet)
+    {
+        feet = (int)std::floor(ntot / (12*minden));
+        ntot = ntot - 12*minden*feet;
+    }
+    else
+    {
+        feet = 0;
+    }
+
+    // Compute the remaining number of whole inches
+    inches = (int)std::floor(ntot/minden);
+
+    // Lastly the fractional quantities
+    num = ntot - inches*minden;
+    den = minden;
+
+    // If numerator is not zero, compute greatest common divisor and reduce
+    // fraction
+    if( num!=0 )
+    {
+        // initialize
+        a = num;
+        b = den;
+        while (b != 0)
+        {
+            tmp = a % b;
+
+            a = b;
+            b = tmp;
+        }
+        d = a;
+
+        num /= d;
+        den /= d;
+    }
+
+    // Process into string. Start with negative sign if quantity is less
+    // than zero
+    if( quant.getValue() < 0 )
+        output << "-";
+
+    // Print feet if we have any
+    if( feet!=0 )
+    {
+        output << feet << "'";
+
+        // if there is to be trailing numbers, add space
+        if( inches!=0 || num!=0 )
+        {
+            output << " ";
+        }
+    }
+
+    // Three cases:
+    //   1. Whole inches, no fraction
+    //   2. Whole inches, fraction
+    //   3. Fraction only
+    if( inches>0 && num==0 ) // case 1.
+    {
+        output << inches << "\"";
+    }
+    else if( inches>0 && num!=0 ) // case 2
+    {
+        output << inches << "+" << num << "/" << den << "\"";
+    }
+    else if( inches==0 && num!=0 ) // case 3
+    {
+        output << num << "/" << den << "\"";
+    }
+
+    // Done!
+    return QString::fromLatin1(output.str().c_str());
+}

@@ -3680,6 +3680,10 @@ Zoom step of &apos;1&apos; means a factor of 7.5 for every zoom step.</source>
         <source>FEM (mm, N, sec)</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Building US (in/in²/in³)</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>Gui::Dialog::DlgSettingsViewColor</name>

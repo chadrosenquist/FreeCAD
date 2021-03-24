@@ -103,6 +103,8 @@ const char* UnitsApi::getDescription(UnitSystem system)
         return "Imperial for Civil Eng (ft, ft/sec)";
     case UnitSystem::FemMilliMeterNewton:
         return "FEM (mm, N, s)";
+    case UnitSystem::ImperialBuildingInches:
+        return "Building US (in/in²/in³)";
     default:
         return "Unknown schema";
     }
@@ -129,6 +131,8 @@ UnitsSchemaPtr UnitsApi::createSchema(UnitSystem s)
         return std::make_unique<UnitsSchemaImperialCivil>();
     case UnitSystem::FemMilliMeterNewton:
         return std::make_unique<UnitsSchemaFemMilliMeterNewton>();
+    case UnitSystem::ImperialBuildingInches:
+        return std::make_unique<UnitsSchemaImperialBuildingInches>();
     default:
         break;
     }

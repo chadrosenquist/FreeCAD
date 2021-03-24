@@ -81,7 +81,7 @@ def get_scales(unit_system = 0):
         scale_units_system = param.GetInt("UserSchema", 0)
         if scale_units_system in [0, 1, 4, 6]:
             return draft_scales_metrics
-        elif scale_units_system in [2, 3, 5]:
+        elif scale_units_system in [2, 3, 5, 9]:
             return draft_scales_arch_imperial
         elif scale_units_system in [7]:
             return draft_scales_eng_imperial

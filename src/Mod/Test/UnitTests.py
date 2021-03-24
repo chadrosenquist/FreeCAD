@@ -79,6 +79,52 @@ class UnitBasicCases(unittest.TestCase):
         self.assertAlmostEqual(6.894744825494, mpa, delta=self.delta)
         kpa = ksi.getValueAs("kPa").Value
         self.assertAlmostEqual(6894.744825494, kpa, delta=self.delta)
+    
+    def testImperialBuilding(self):
+        scheme = FreeCAD.Units.Scheme.ImperialBuilding.value
+    
+        length = FreeCAD.Units.Quantity('39.5"')
+        translated_length = FreeCAD.Units.schemaTranslate(length, scheme)
+        self.assertEqual('3\' 3+1/2"', translated_length[0])
+
+    def testImperialBuildingInchesLength(self):
+        """Focuses on testing UnitsSchemaImperialBuildingInches::schemaTranslate()"""
+        scheme = FreeCAD.Units.Scheme.ImperialBuildingInches.value
+        length = FreeCAD.Units.Quantity('39.5"')
+        translated_length = FreeCAD.Units.schemaTranslate(length, scheme)
+        self.assertEqual('39+1/2"', translated_length[0])
+
+    def testImperialBuildingInchesAngle(self):
+        scheme = FreeCAD.Units.Scheme.ImperialBuildingInches.value
+        angle = FreeCAD.Units.Quantity('45 deg')
+        translated_angle = FreeCAD.Units.schemaTranslate(angle, scheme)
+        angle_value, angle_units = translated_angle[0].split()
+        self.assertAlmostEqual(45.0, float(angle_value), delta=self.delta)
+        self.assertEqual('\xB0', angle_units)
+
+    def testImperialBuildingInchesArea(self):
+        scheme = FreeCAD.Units.Scheme.ImperialBuildingInches.value    
+        area = FreeCAD.Units.Quantity('100 mm^2')
+        translated_area = FreeCAD.Units.schemaTranslate(area, scheme)
+        area_value, area_units = translated_area[0].split()
+        self.assertAlmostEqual(0.15500031000062, float(area_value), delta=self.delta)
+        self.assertEqual('in^2', area_units)
+
+    def testImperialBuildingInchesVolume(self):
+        scheme = FreeCAD.Units.Scheme.ImperialBuildingInches.value
+        volume = FreeCAD.Units.Quantity('1000 mm^3')
+        translated_volume = FreeCAD.Units.schemaTranslate(volume, scheme)
+        volume_value, volume_units = translated_volume[0].split()
+        self.assertAlmostEqual(0.0610237440947323, float(volume_value), delta=self.delta)
+        self.assertEqual('in^3', volume_units)
+
+    def testImperialBuildingInchesSpeed(self):
+        scheme = FreeCAD.Units.Scheme.ImperialBuildingInches.value
+        speed = FreeCAD.Units.Quantity('5000 mm/min')
+        translated_speed = FreeCAD.Units.schemaTranslate(speed, scheme)
+        speed_value, speed_units = translated_speed[0].split()
+        self.assertAlmostEqual(196.8503937007874, float(speed_value), delta=self.delta)
+        self.assertEqual('in/min', speed_units)
 
     def testSelfConsistency(self):
         qu = FreeCAD.Units.Quantity("0.23 W/m/K")

@@ -54,6 +54,7 @@ using namespace Base;
     qApp->translate("Gui::Dialog::DlgSettingsUnits", "Metric small parts & CNC(mm, mm/min)");
     qApp->translate("Gui::Dialog::DlgSettingsUnits", "Imperial for Civil Eng (ft, ft/sec)");
     qApp->translate("Gui::Dialog::DlgSettingsUnits", "FEM (mm, N, sec)");
+    qApp->translate("Gui::Dialog::DlgSettingsUnits", "Building US (in/in²/in³)");
 #endif
 
 /**
@@ -76,7 +77,8 @@ DlgSettingsUnitsImp::DlgSettingsUnitsImp(QWidget* parent)
     ui->tableWidget->setVisible(false);
     //
     // Enable/disable the fractional inch option depending on system
-    if( UnitsApi::getSchema() == UnitSystem::ImperialBuilding )
+    if( ( UnitsApi::getSchema() == UnitSystem::ImperialBuilding ) ||
+        ( UnitsApi::getSchema() == UnitSystem::ImperialBuildingInches ) )
     {
         ui->comboBox_FracInch->setEnabled(true);
     }
@@ -101,7 +103,8 @@ void DlgSettingsUnitsImp::on_comboBox_ViewSystem_currentIndexChanged(int index)
         return; // happens when clearing the combo box in retranslateUi()
 
     // Enable/disable the fractional inch option depending on system
-    if( (UnitSystem)index == UnitSystem::ImperialBuilding )
+    if( ( (UnitSystem)index == UnitSystem::ImperialBuilding ) ||
+        ( (UnitSystem)index == UnitSystem::ImperialBuildingInches ) )
     {
         ui->comboBox_FracInch->setEnabled(true);
     }

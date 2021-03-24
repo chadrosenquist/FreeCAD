@@ -683,6 +683,9 @@ bool DrawViewDimension::isMultiValueSchema(void) const
     } else if ((uniSys == Base::UnitSystem::ImperialCivil) &&
                !angularMeasure) {
         result = true;
+    } else if ((uniSys == Base::UnitSystem::ImperialBuildingInches) &&
+               !angularMeasure) {
+        result = true;
     }
     return result;
 }
@@ -708,6 +711,8 @@ std::string DrawViewDimension::getBaseLengthUnit(Base::UnitSystem system)
         return "ft";
     case Base::UnitSystem::FemMilliMeterNewton:
         return "mm";
+    case Base::UnitSystem::ImperialBuildingInches:
+        return "in";
     default:
         return "Unknown schema";
     }
